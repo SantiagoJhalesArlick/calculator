@@ -1,19 +1,19 @@
 {
   "name": "Trade Simple",
-  "short_name": "RiskCalc",
-  "description": "Risk management calculator with history.",
-  "start_url": "./index.html",
+  "short_name": "TradeSimple",
+  "description": "Risk Calculator PWA",
+  "start_url": "/",
   "display": "standalone",
-  "background_color": "#bbdefb",
+  "background_color": "#ffffff",
   "theme_color": "#5d9a9f",
   "icons": [
     {
-      "src": "logo.png",
+      "src": "/logo.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "logo.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }
