@@ -1,21 +1,20 @@
 {
-  "name": "Trade Simple",
-  "short_name": "TradeSimple",
-  "description": "Risk Calculator PWA",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#5d9a9f",
-  "icons": [
-    {
-      "src": "/logo.png",
-      "sizes": "192x192",
-      "type": "image/png"
+  "manifest_version": 3,
+  "name": "Trade Simple Risk Calculator",
+  "version": "1.0",
+  "description": "A simple risk and position size calculator for trading.",
+  
+  "action": {
+    "default_icon": {
+      "16": "logo.png",
+      "32": "logo.png"
     },
-    {
-      "src": "/logo.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+    "default_popup": "index.html", 
+    "default_title": "Trade Simple Calculator"
+  },
+  
+  "icons": {
+    "48": "logo.png",
+    "128": "logo.png"
+  }
 }
