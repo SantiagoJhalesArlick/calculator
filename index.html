@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Risk Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <link rel="manifest" href="/calculator/manifest.json">
+    <meta name="theme-color" content="#5d9a9f"/> 
+
+    <style>
+        /*
+        * ----------------------------------------
+        * CSS STYLES (Minimalist Design + Gradient)
+        * ----------------------------------------
+        */
+        :root {
+            --primary-color: #5d9a9f; /* Soft Teal */
+            --primary-dark: #4a7d80;
+            --secondary-color: #f7f9f9; 
+            --text-color: #333;
+            --light-text-color: #777;
+            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            /* Simple Gradient Background (Pleasing in the eyes) */
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .calculator-container {
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: var(--box-shadow);
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            transition: all 0.5s ease-in-out; 
+            position: relative;
+        }
+
+        /* Header Layout */
+        .header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .title {
+            color: var(--primary-color);
+            font-size: 1.4em;
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin: 0;
+            flex-grow: 1;
+            text-align: left;
+        }
+        
+        /* History Toggle Button */
+        #historyToggle {
+            background: none;
+            border: none;
+            color: var(--light-text-color);
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 5px;
+            transition: color 0.3s;
+        }
+
+        #historyToggle:hover {
+            color: var(--primary-color);
+        }
+
+        /* --- Input/Results Styles (Retained) --- */
+        .input-group { margin-bottom: 25px; text-align: left; }
+        .input-group label { display: block; margin-bottom: 6px; font-size: 0.9em; color: var(--light-text-color); font-weight: 600; }
+        .input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1.1em; color: var(--text-color); text-align: right; }
+        .results-container { border-top: 2px solid #eee; padding-top: 20px; text-align: left; }
+        .result-group { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1em; color: var(--text-color); }
+        .result-group span:first-child { color: var(--light-text-color); font-weight: 500; }
+        .result-value { font-weight: bold; color: var(--primary-color); }
+        .history-list { list-style: none; padding: 0; max-height: 400px; overflow-y: auto; }
+        .history-item { background-color: var(--secondary-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--primary-color); }
+        .history-date { font-size: 0.75em; color: var(--light-text-color); margin-bottom: 8px; display: block; }
+        .history-summary strong { color: var(--primary-dark); }
+        .view-content.hidden { display: none !important; }
+
+        /* --- Calculation/Clear Button Group --- */
+        .button-group {
+            display: flex;
+            gap: 10px; /* Space between buttons */
+            margin-bottom: 30px;
+        }
+        
+        #calculateBtn, #clearBtn {
+            flex-grow: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #calculateBtn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        #calculateBtn:hover {
+            background-color: var(--primary-dark);
+        }
+        
+        #clearBtn {
+            background-color: #e0e0e0; /* Light gray */
+            color: var(--text-color);
+        }
+
+        #clearBtn:hover {
+            background-color: #ccc;
+        }
+
+
+        /* --- Support Section (Only the button remains) --- */
+        .support {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #f0f0f0;
+            text-align: center;
+        }
+        #supportToggle {
+            background-color: var(--secondary-color);
+            border: 1px solid #ddd;
+            color: var(--text-color);
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 6px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        #supportToggle:hover {
+            background-color: #e0e0e0;
+            border-color: var(--primary-color);
+        }
+
+        /* --- Modal (Pop-up) Styling (Retained) --- */
+        .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border-radius: 12px; width: 80%; max-width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from {opacity: 0; transform: scale(0.9);} to {opacity: 1; transform: scale(1);} }
+        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
+        .close-button:hover, .close-button:focus { color: #333; text-decoration: none; cursor: pointer; }
+        .modal-content h3 { color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; text-align: center; }
+        .modal .support-buttons { display: flex; flex-direction: column; gap: 10px; padding: 15px 0; }
+        .modal .support-btn { color: var(--text-color); background-color: var(--secondary-color); padding: 12px; border-radius: 8px; justify-content: flex-start; transition: background-color 0.2s; text-decoration: none; }
+        .modal .support-btn:hover { background-color: #e0e0e0; color: var(--primary-dark); }
+        .modal .support-btn i { font-size: 1.4em; width: 30px; color: var(--primary-color); }
+    </style>
+</head>
+<body>
+
+    <div class="calculator-container">
+        
+        <div class="header-section">
+            <img src="logo.png" alt="Custom Logo" class="logo">
+            <h2 class="title" id="mainTitle">Trade Simple</h2>
+            
+            <button id="historyToggle">
+                <i class="fas fa-clock" title="View History"></i>
+            </button>
+        </div>
+
+        <div id="calculatorView" class="view-content">
+            <div class="input-group">
+                <label for="portfolioAmount">Total Portfolio Amount</label>
+                <input type="number" id="portfolioAmount" value="1000" step="0.01" min="0">
+            </div>
+
+            <div class="input-group">
+                <label for="stopLossPercent">Stop Loss %</label>
+                <input type="number" id="stopLossPercent" value="2" step="0.01" min="0">
+            </div>
+
+            <div class="input-group">
+                <label for="riskLevelPercent">Risk Level %</label>
+                <input type="number" id="riskLevelPercent" value="2" step="0.01" min="0">
+            </div>
+
+            <div class="input-group">
+                <label for="leverage">Leverage x</label>
+                <input type="number" id="leverage" value="500" step="1" min="1">
+            </div>
+
+            <div class="button-group">
+                <button id="calculateBtn">
+                    Calculate
+                    <span class="icon">🔗</span>
+                </button>
+                <button id="clearBtn">
+                    Clear <span class="icon"><i class="fas fa-redo"></i></span>
+                </button>
+            </div>
+
+            <div class="results-container">
+                <div class="result-group">
+                    <span>~Margin</span>
+                    <span id="marginResult" class="result-value">$0.00</span>
+                </div>
+                <div class="result-group">
+                    <span>Maximum Loss</span>
+                    <span id="maxLossResult" class="result-value">$0.00</span>
+                </div>
+                <div class="result-group">
+                    <span>Position Size $</span>
+                    <span id="positionSizeResult" class="result-value">$0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="historyView" class="view-content hidden">
+            <div class="history-container">
+                <h3>Calculation History</h3>
+                <ul class="history-list" id="historyList">
+                    <li class="history-item">
+                        <span class="history-date">No calculations recorded yet.</span>
+                    </li>
+                </ul>
+            </div>
+             <button id="clearHistoryBtn" class="support-btn" style="color: #DB4437; border: 1px solid #eee; padding: 8px 15px; display: none; margin-top: 10px;">
+                <i class="fas fa-trash"></i> Clear History
+            </button>
+        </div>
+
+        <div class="support">
+            <button id="supportToggle">
+                Support my work <i class="fas fa-share-alt"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div id="socialModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeModal">&times;</span>
+            <h3>Connect with me</h3>
+            <div class="support-buttons">
+                <a href="https://www.instagram.com/itsmilester?igsh=NXl2cTA5d2VkZGNv" target="_blank" class="support-btn">
+                    <i class="fab fa-instagram"></i> Personal IG
+                </a>
+                <a href="https://www.facebook.com/share/1BzcBDoXgF/" target="_blank" class="support-btn">
+                    <i class="fab fa-facebook-f"></i> Personal FB
+                </a>
+                <a href="https://www.facebook.com/profile.php?id=61584117402935" target="_blank" class="support-btn">
+                    <i class="fab fa-facebook-square"></i> FB Page Link
+                </a>
+                <a href="https://www.tiktok.com/@tradesimplee?lang=en-GB&is_from_webapp=1&sender_device=mobile&sender_web_id=7547934700514690576" target="_blank" class="support-btn">
+                    <i class="fab fa-tiktok"></i> Tiktok Link
+                </a>
+                <a href="https://x.com/Tr4deSimple" target="_blank" class="support-btn">
+                    <i class="fab fa-x-twitter"></i> X Link
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /*
+        * ----------------------------------------
+        * PWA SERVICE WORKER REGISTRATION (START)
+        * ----------------------------------------
+        */
+        // Register the Service Worker for offline capability
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // IMPORTANT: Path corrected to match http://localhost/calculator/ structure
+                navigator.serviceWorker.register('/calculator/service-worker.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    }, err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+        /*
+        * ----------------------------------------
+        * PWA SERVICE WORKER REGISTRATION (END)
+        * ----------------------------------------
+        */
+
+        /*
+        * ----------------------------------------
+        * JAVASCRIPT LOGIC
+        * ----------------------------------------
+        */
+        const calculateBtn = document.getElementById('calculateBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const historyToggle = document.getElementById('historyToggle');
+        const calculatorView = document.getElementById('calculatorView');
+        const historyView = document.getElementById('historyView');
+        const historyList = document.getElementById('historyList');
+        const mainTitle = document.getElementById('mainTitle');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        const supportToggle = document.getElementById('supportToggle');
+        const socialModal = document.getElementById('socialModal');
+        const closeModal = document.getElementById('closeModal');
+
+
+        // --- Event Listeners ---
+        calculateBtn.addEventListener('click', handleCalculationClick);
+        clearBtn.addEventListener('click', clearCalculator); 
+        historyToggle.addEventListener('click', toggleView);
+        clearHistoryBtn.addEventListener('click', clearHistory);
+        supportToggle.addEventListener('click', openModal);
+        closeModal.addEventListener('click', closeModalHandler);
+        // Close modal when user clicks outside of it
+        window.addEventListener('click', (event) => {
+            if (event.target == socialModal) {
+                closeModalHandler();
+            }
+        });
+
+        // --- Clear Function ---
+        function clearCalculator() {
+            // Reset Input Fields to 0
+            document.getElementById('portfolioAmount').value = 0;
+            document.getElementById('stopLossPercent').value = 0;
+            document.getElementById('riskLevelPercent').value = 0;
+            document.getElementById('leverage').value = 0;
+
+            // Reset Result Fields to $0.00
+            document.getElementById('marginResult').textContent = "$0.00";
+            document.getElementById('maxLossResult').textContent = "$0.00";
+            document.getElementById('positionSizeResult').textContent = "$0.00";
+        }
+
+
+        // --- Modal Functions (Pop-up) ---
+        function openModal() {
+            socialModal.style.display = 'block';
+        }
+
+        function closeModalHandler() {
+            socialModal.style.display = 'none';
+        }
+
+
+        // --- History Management Functions ---
+
+        function loadHistory() {
+            try {
+                const history = localStorage.getItem('cryptoRiskHistory');
+                return history ? JSON.parse(history) : [];
+            } catch (e) {
+                console.error("Error loading history from localStorage:", e);
+                return [];
+            }
+        }
+
+        function saveHistory(record) {
+            const history = loadHistory();
+            history.unshift(record); 
+            if (history.length > 20) {
+                history.pop();
+            }
+            try {
+                localStorage.setItem('cryptoRiskHistory', JSON.stringify(history));
+            } catch (e) {
+                console.error("Error saving history to localStorage:", e);
+            }
+        }
+
+        function renderHistory() {
+            const history = loadHistory();
+            historyList.innerHTML = ''; 
+
+            if (history.length === 0) {
+                historyList.innerHTML = `<li class="history-item"><span class="history-date">No calculations recorded yet.</span></li>`;
+                clearHistoryBtn.style.display = 'none';
+                return;
+            }
+            
+            clearHistoryBtn.style.display = 'block';
+
+            history.forEach(record => {
+                const listItem = document.createElement('li');
+                listItem.className = 'history-item';
+                
+                const date = new Date(record.timestamp);
+                const formattedDate = date.toLocaleDateString(undefined, {
+                    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+
+                listItem.innerHTML = `
+                    <span class="history-date">${formattedDate}</span>
+                    <div class="history-summary">
+                        <strong>Input:</strong> Port $${record.portfolioAmount}, SL ${record.stopLossPercent}%, Risk ${record.riskLevelPercent}%, Lev ${record.leverage}x
+                        <br>
+                        <strong>Output:</strong> Max Loss ${record.maxLoss}, Pos Size ${record.positionSize}, Margin ${record.margin}
+                    </div>
+                `;
+                historyList.appendChild(listItem);
+            });
+        }
+        
+        function clearHistory() {
+            if (confirm("Are you sure you want to clear all calculation history?")) {
+                localStorage.removeItem('cryptoRiskHistory');
+                renderHistory();
+            }
+        }
+
+        // --- View Toggle Function ---
+
+        function toggleView() {
+            const isHistoryActive = historyView.classList.contains('hidden');
+            
+            if (isHistoryActive) {
+                calculatorView.classList.add('hidden');
+                historyView.classList.remove('hidden');
+                historyToggle.innerHTML = '<i class="fas fa-calculator" title="Go back to Calculator"></i>';
+                mainTitle.textContent = 'HISTORY';
+                renderHistory(); 
+            } else {
+                historyView.classList.add('hidden');
+                calculatorView.classList.remove('hidden');
+                historyToggle.innerHTML = '<i class="fas fa-clock" title="View History"></i>';
+                mainTitle.textContent = 'Trade Simple';
+            }
+        }
+
+
+        // --- Calculation and History Logic ---
+
+        function formatCurrency(amount) {
+            return `$${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+        }
+        
+        function calculateRisk(portfolioAmount, stopLossPercent, riskLevelPercent, leverage) {
+            
+            // Validation: if any input is 0 or less, results should be 0 
+            if (portfolioAmount <= 0 || stopLossPercent <= 0 || leverage < 1) {
+                document.getElementById('marginResult').textContent = "$0.00";
+                document.getElementById('maxLossResult').textContent = "$0.00";
+                document.getElementById('positionSizeResult').textContent = "$0.00";
+                return { margin: 0, maximumLoss: 0, positionSize: 0 };
+            }
+
+            const riskLevelDecimal = riskLevelPercent / 100;
+            const stopLossDecimal = stopLossPercent / 100;
+
+            const maximumLoss = portfolioAmount * riskLevelDecimal;
+            const positionSize = maximumLoss / stopLossDecimal;
+            const margin = positionSize / leverage;
+            
+            document.getElementById('maxLossResult').textContent = formatCurrency(maximumLoss);
+            document.getElementById('positionSizeResult').textContent = formatCurrency(positionSize);
+            document.getElementById('marginResult').textContent = formatCurrency(margin);
+
+            return { margin, maximumLoss, positionSize };
+        }
+        
+        function handleCalculationClick() {
+            const portfolioAmount = parseFloat(document.getElementById('portfolioAmount').value);
+            const stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
+            const riskLevelPercent = parseFloat(document.getElementById('riskLevelPercent').value);
+            const leverage = parseFloat(document.getElementById('leverage').value);
+
+            // Basic Input Validation for saving history
+            if (isNaN(portfolioAmount) || isNaN(stopLossPercent) || isNaN(riskLevelPercent) || isNaN(leverage) || portfolioAmount <= 0 || stopLossPercent <= 0 || leverage < 1) {
+                alert("Please ensure all fields have valid positive values (Leverage must be at least 1) to calculate and record history.");
+                // Calculation will still run to display $0.00 results, but history is not saved.
+                calculateRisk(portfolioAmount, stopLossPercent, riskLevelPercent, leverage);
+                return;
+            }
+            
+            const { margin, maximumLoss, positionSize } = calculateRisk(portfolioAmount, stopLossPercent, riskLevelPercent, leverage);
+
+            // Save History (Only when Calculate button is clicked and inputs are valid)
+            const record = {
+                timestamp: new Date().toISOString(),
+                portfolioAmount: portfolioAmount.toFixed(2),
+                stopLossPercent: stopLossPercent.toFixed(2),
+                riskLevelPercent: riskLevelPercent.toFixed(2),
+                leverage: leverage.toFixed(0),
+                margin: formatCurrency(margin),
+                maxLoss: formatCurrency(maximumLoss),
+                positionSize: formatCurrency(positionSize)
+            };
+            saveHistory(record);
+        }
+
+        // --- Initialization ---
+        window.onload = function() {
+            // Get default/current input values
+            const portfolioAmount = parseFloat(document.getElementById('portfolioAmount').value);
+            const stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
+            const riskLevelPercent = parseFloat(document.getElementById('riskLevelPercent').value);
+            const leverage = parseFloat(document.getElementById('leverage').value);
+
+            // Run calculation logic to display initial results without saving history
+            if (!isNaN(portfolioAmount) && !isNaN(stopLossPercent) && !isNaN(riskLevelPercent) && !isNaN(leverage)) {
+                calculateRisk(portfolioAmount, stopLossPercent, riskLevelPercent, leverage);
+            }
+        };
+    </script>
+</body>
+</html>
