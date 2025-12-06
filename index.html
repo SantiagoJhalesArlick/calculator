@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trade Simple</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-        <link rel="icon" type="image/png" href="logo.png" />
-
+    <link rel="icon" type="image/png" href="logo.png" /> 
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <link rel="manifest" href="/manifest.json">
@@ -35,7 +35,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            /* Inalis ang fixed height/width para sa Vercel/website view */
+            min-height: 100vh; 
             margin: 0;
             padding: 20px;
         }
@@ -46,10 +47,11 @@
             box-shadow: var(--box-shadow);
             padding: 30px;
             width: 100%;
-            max-width: 400px;
+            max-width: 400px; /* Constrain width for a focused look */
             text-align: center;
             transition: all 0.5s ease-in-out; 
             position: relative;
+            z-index: 5; 
         }
 
         /* Header Layout */
@@ -169,8 +171,28 @@
         }
 
         /* --- Modal (Pop-up) Styling (Retained) --- */
-        .modal { display: none; position: fixed; z-index: 10; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border-radius: 12px; width: 80%; max-width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s; }
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 100; 
+            left: 0; 
+            top: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.4); 
+        }
+        .modal-content { 
+            background-color: #fefefe; 
+            margin: 15% auto; 
+            padding: 30px; 
+            border-radius: 12px; 
+            width: 80%; 
+            max-width: 350px; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3); 
+            position: relative; 
+            animation: fadeIn 0.3s; 
+        }
         @keyframes fadeIn { from {opacity: 0; transform: scale(0.9);} to {opacity: 1; transform: scale(1);} }
         .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
         .close-button:hover, .close-button:focus { color: #333; text-decoration: none; cursor: pointer; }
@@ -309,6 +331,62 @@
         * PWA SERVICE WORKER REGISTRATION (END)
         * ----------------------------------------
         */
+        
+        /*
+        * ----------------------------------------
+        * PWA CUSTOM INSTALL PROMPT LOGIC (START)
+        * ----------------------------------------
+        */
+        let deferredPrompt;
+
+        // Nakinig sa native browser event na nagsasabing handa na itong magpakita ng install prompt
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Pigilan ang default na prompt ng browser
+            e.preventDefault();
+            // I-store ang event para magamit mamaya (kapag nag-click ang user ng "Yes")
+            deferredPrompt = e;
+            
+            // Ipakita ang sarili nating SweetAlert2 prompt!
+            showCustomInstallPrompt();
+        });
+
+        function showCustomInstallPrompt() {
+            // I-check kung nagawa na ang deferredPrompt at hindi pa installed
+            if (deferredPrompt) {
+                Swal.fire({
+                    title: 'Download App?',
+                    text: 'Would you like to install the Trade Simple calculator for quick access? (It works offline!)',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#5d9a9f',
+                    cancelButtonColor: '#DB4437',
+                    confirmButtonText: 'Yes, Download it!',
+                    cancelButtonText: 'No, thanks.'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Kung nag-confirm ang user, tawagin ang native prompt ng browser
+                        deferredPrompt.prompt();
+                        
+                        deferredPrompt.userChoice.then((choiceResult) => {
+                            if (choiceResult.outcome === 'accepted') {
+                                console.log('User accepted the install prompt');
+                            } else {
+                                console.log('User dismissed the install prompt');
+                            }
+                            // I-reset ang prompt variable
+                            deferredPrompt = null; 
+                        });
+                    } else {
+                         console.log('User dismissed the custom install prompt');
+                    }
+                });
+            }
+        }
+        /*
+        * ----------------------------------------
+        * PWA CUSTOM INSTALL PROMPT LOGIC (END)
+        * ----------------------------------------
+        */
 
         /*
         * ----------------------------------------
@@ -426,10 +504,27 @@
         }
         
         function clearHistory() {
-            if (confirm("Are you sure you want to clear all calculation history?")) {
-                localStorage.removeItem('cryptoRiskHistory');
-                renderHistory();
-            }
+            // Gumagamit ng SweetAlert2 para sa confirmation
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This will permanently delete all calculation history!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#DB4437', 
+                cancelButtonColor: '#5d9a9f', 
+                confirmButtonText: 'Yes, clear it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.removeItem('cryptoRiskHistory');
+                    renderHistory();
+                    Swal.fire({
+                        title: 'Cleared!',
+                        text: 'Your calculation history has been deleted.',
+                        icon: 'success',
+                        confirmButtonColor: '#5d9a9f'
+                    });
+                }
+            });
         }
 
         // --- View Toggle Function ---
@@ -491,7 +586,6 @@
             // SweetAlert2 Validation Check
             if (portfolioAmount <= 0 || stopLossPercent <= 0 || leverage < 1) {
                 
-                // *** Ginamit ang SweetAlert2 dito para palitan ang alert() ***
                 Swal.fire({
                     icon: 'error',
                     title: 'Invalid Input',
@@ -499,7 +593,6 @@
                     confirmButtonColor: '#5d9a9f' 
                 });
                 
-                // Calculation will still run to display $0.00 results, but history is not saved.
                 calculateRisk(portfolioAmount, stopLossPercent, riskLevelPercent, leverage);
                 return;
             }
