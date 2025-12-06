@@ -1,5 +1,5 @@
 {
-  "name": "Crypto Risk Calculator",
+  "name": "Trade Simple",
   "short_name": "RiskCalc",
   "description": "Risk management calculator with history.",
   "start_url": "./index.html",
