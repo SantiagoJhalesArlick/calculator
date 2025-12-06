@@ -1,7 +1,7 @@
 {
     "name": "Trade Simple Calculator",
     "short_name": "Trade Simple",
-    "description": "Risk and position size calculator for trading.",
+    "description": "Risk and position size calculator for trading. Works offline.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#e3f2fd",
