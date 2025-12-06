@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trade Simple</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="icon" type="image/png" href="logo.png" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
-    <link rel="manifest" href="/calculator/manifest.json">
+    <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#5d9a9f"/> 
 
     <style>
@@ -194,22 +197,22 @@
         <div id="calculatorView" class="view-content">
             <div class="input-group">
                 <label for="portfolioAmount">Total Portfolio Amount</label>
-                <input type="number" id="portfolioAmount" value="1000" step="0.01" min="0">
+                <input type="number" id="portfolioAmount" step="0.01" min="0">
             </div>
 
             <div class="input-group">
                 <label for="stopLossPercent">Stop Loss %</label>
-                <input type="number" id="stopLossPercent" value="2" step="0.01" min="0">
+                <input type="number" id="stopLossPercent" step="0.01" min="0">
             </div>
 
             <div class="input-group">
                 <label for="riskLevelPercent">Risk Level %</label>
-                <input type="number" id="riskLevelPercent" value="2" step="0.01" min="0">
+                <input type="number" id="riskLevelPercent" step="0.01" min="0">
             </div>
 
             <div class="input-group">
                 <label for="leverage">Leverage x</label>
-                <input type="number" id="leverage" value="500" step="1" min="1">
+                <input type="number" id="leverage" step="1" min="1">
             </div>
 
             <div class="button-group">
@@ -265,19 +268,19 @@
             <h3>Connect with me</h3>
             <div class="support-buttons">
                 <a href="https://www.instagram.com/itsmilester?igsh=NXl2cTA5d2VkZGNv" target="_blank" class="support-btn">
-                    <i class="fab fa-instagram"></i> Personal IG
+                    <i class="fab fa-instagram"></i> Instagram 
                 </a>
                 <a href="https://www.facebook.com/share/1BzcBDoXgF/" target="_blank" class="support-btn">
-                    <i class="fab fa-facebook-f"></i> Personal FB
+                    <i class="fab fa-facebook-f"></i> Facebook 
                 </a>
                 <a href="https://www.facebook.com/profile.php?id=61584117402935" target="_blank" class="support-btn">
-                    <i class="fab fa-facebook-square"></i> FB Page Link
+                    <i class="fab fa-facebook-square"></i> Community Page
                 </a>
                 <a href="https://www.tiktok.com/@tradesimplee?lang=en-GB&is_from_webapp=1&sender_device=mobile&sender_web_id=7547934700514690576" target="_blank" class="support-btn">
-                    <i class="fab fa-tiktok"></i> Tiktok Link
+                    <i class="fab fa-tiktok"></i> Tiktok Page
                 </a>
                 <a href="https://x.com/Tr4deSimple" target="_blank" class="support-btn">
-                    <i class="fab fa-x-twitter"></i> X Link
+                    <i class="fab fa-x-twitter"></i> X Page
                 </a>
             </div>
         </div>
@@ -292,8 +295,8 @@
         // Register the Service Worker for offline capability
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                // IMPORTANT: Path corrected to match http://localhost/calculator/ structure
-                navigator.serviceWorker.register('/calculator/service-worker.js')
+                // PWA Path corrected to root path for Vercel deployment
+                navigator.serviceWorker.register('/service-worker.js')
                     .then(registration => {
                         console.log('ServiceWorker registration successful with scope: ', registration.scope);
                     }, err => {
@@ -341,11 +344,11 @@
 
         // --- Clear Function ---
         function clearCalculator() {
-            // Reset Input Fields to 0
-            document.getElementById('portfolioAmount').value = 0;
-            document.getElementById('stopLossPercent').value = 0;
-            document.getElementById('riskLevelPercent').value = 0;
-            document.getElementById('leverage').value = 0;
+            // Reset Input Fields to empty string
+            document.getElementById('portfolioAmount').value = ''; 
+            document.getElementById('stopLossPercent').value = '';
+            document.getElementById('riskLevelPercent').value = '';
+            document.getElementById('leverage').value = '';
 
             // Reset Result Fields to $0.00
             document.getElementById('marginResult').textContent = "$0.00";
@@ -480,14 +483,22 @@
         }
         
         function handleCalculationClick() {
-            const portfolioAmount = parseFloat(document.getElementById('portfolioAmount').value);
-            const stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
-            const riskLevelPercent = parseFloat(document.getElementById('riskLevelPercent').value);
-            const leverage = parseFloat(document.getElementById('leverage').value);
+            const portfolioAmount = parseFloat(document.getElementById('portfolioAmount').value || 0);
+            const stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value || 0);
+            const riskLevelPercent = parseFloat(document.getElementById('riskLevelPercent').value || 0);
+            const leverage = parseFloat(document.getElementById('leverage').value || 0);
 
-            // Basic Input Validation for saving history
-            if (isNaN(portfolioAmount) || isNaN(stopLossPercent) || isNaN(riskLevelPercent) || isNaN(leverage) || portfolioAmount <= 0 || stopLossPercent <= 0 || leverage < 1) {
-                alert("Please ensure all fields have valid positive values (Leverage must be at least 1) to calculate and record history.");
+            // SweetAlert2 Validation Check
+            if (portfolioAmount <= 0 || stopLossPercent <= 0 || leverage < 1) {
+                
+                // *** Ginamit ang SweetAlert2 dito para palitan ang alert() ***
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Input',
+                    text: 'Please ensure all fields have valid positive values. Leverage must be at least 1.',
+                    confirmButtonColor: '#5d9a9f' 
+                });
+                
                 // Calculation will still run to display $0.00 results, but history is not saved.
                 calculateRisk(portfolioAmount, stopLossPercent, riskLevelPercent, leverage);
                 return;
@@ -510,18 +521,7 @@
         }
 
         // --- Initialization ---
-        window.onload = function() {
-            // Get default/current input values
-            const portfolioAmount = parseFloat(document.getElementById('portfolioAmount').value);
-            const stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value);
-            const riskLevelPercent = parseFloat(document.getElementById('riskLevelPercent').value);
-            const leverage = parseFloat(document.getElementById('leverage').value);
-
-            // Run calculation logic to display initial results without saving history
-            if (!isNaN(portfolioAmount) && !isNaN(stopLossPercent) && !isNaN(riskLevelPercent) && !isNaN(leverage)) {
-                calculateRisk(portfolioAmount, stopLossPercent, riskLevelPercent, leverage);
-            }
-        };
+        // TINANGGAL ANG AUTOMATIC CALCULATION SA PAGE LOAD
     </script>
 </body>
 </html>
