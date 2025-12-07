@@ -1,11 +1,11 @@
-const CACHE_NAME = 'trade-simple-v2'; // Version updated for fresh cache
+const CACHE_NAME = 'trade-simple-v5'; // Version incremented to force all devices to clear old cache!
 const urlsToCache = [
-    '/', // Cache the root path
+    '/', 
     '/index.html',
-    '/logo.png',
-    '/manifest.json', // Added the manifest file to cache
+    '/logo.png', 
+    '/manifest.json', 
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css',
-    'https://cdn.jsdelivr.net/npm/sweetalert2@11' // Added SweetAlert2 for offline use
+    'https://cdn.jsdelivr.net/npm/sweetalert2@11' 
 ];
 
 // Install Event: Caches all necessary assets
@@ -35,7 +35,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Activate Event: Cleans up old caches (to prevent outdated files from accumulating)
+// Activate Event: Cleans up old caches (Ito ang nag-aalis ng lumang T icon)
 self.addEventListener('activate', (event) => {
   const cacheWhitelist = [CACHE_NAME];
   event.waitUntil(
