@@ -345,6 +345,14 @@
             font-size: 20px;
         }
         
+        /* --- Custom Logo Styling: If logo.png is used, the background/text is overridden --- */
+        .logo img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: block;
+        }
+
         /* --- Mobile Responsiveness --- */
         @media (max-width: 768px) {
             .app-container {
@@ -355,6 +363,7 @@
             .history-log {
                 max-height: 400px;
                 overflow-y: scroll;
+                display: none; /* Initially hide history on mobile, show via button */
             }
 
             .card {
@@ -365,14 +374,6 @@
                 flex-direction: column;
                 gap: 10px;
             }
-        }
-
-        /* --- Custom Logo Styling: If logo.png is used, the background/text is overridden --- */
-        .logo img {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            display: block;
         }
     </style>
 </head>
@@ -485,11 +486,13 @@
                 Download the App
                 <button class="close-btn" onclick="closeModal('downloadModal')">&times;</button>
             </div>
-            <p>Get the **Trade Simple** app with the custom logo on your devices!</p>
-            <a href="#" class="modal-download-item">
+            <p>Get the <strong>Trade Simple</strong> app with the custom logo on your devices!</p>
+            
+            <a href="#" class="modal-download-item" id="pc-download-link">
                 <span class="modal-icon">💻</span> Download for PC (Windows/Mac)
             </a>
-            <a href="#" class="modal-download-item">
+            
+            <a href="https://play.google.com/store/apps/details?id=your.mobile.app" target="_blank" class="modal-download-item" id="mobile-download-link">
                 <span class="modal-icon">📱</span> Download for Mobile (iOS/Android)
             </a>
         </div>
@@ -501,26 +504,25 @@
             calculatorForm.addEventListener('submit', handleCalculate);
             loadInitialHistoryState();
             checkLogoAvailability();
+            setupDownloadLinks(); // Initialize the download links behavior
         });
         
         // --- Utility Functions ---
 
         /**
          * Checks if logo.png exists and updates the placeholder accordingly.
-         * If it exists, it displays the image. If not, it keeps the 'TS' text.
          */
         function checkLogoAvailability() {
             const logoPlaceholder = document.getElementById('logo-placeholder');
             const img = logoPlaceholder.querySelector('img');
             
-            // Try to load the image
             const tempImg = new Image();
             tempImg.onload = () => {
                 // Success: Logo exists, display it
-                logoPlaceholder.innerHTML = ''; // Clear 'TS' text
-                img.style.display = 'block'; // Show the image
+                logoPlaceholder.innerHTML = ''; 
+                img.style.display = 'block'; 
                 logoPlaceholder.appendChild(img);
-                logoPlaceholder.style.backgroundColor = 'transparent'; // Remove background
+                logoPlaceholder.style.backgroundColor = 'transparent'; 
             };
             tempImg.onerror = () => {
                 // Failure: Logo doesn't exist, keep 'TS' text/background
@@ -547,7 +549,6 @@
          */
         function toggleHistory() {
             const historyCard = document.getElementById('history-card');
-            // Toggle the visibility only needed for responsiveness, but this keeps a clean UI
             if (window.innerWidth <= 768) {
                 historyCard.style.display = historyCard.style.display === 'none' ? 'block' : 'none';
             }
@@ -573,15 +574,8 @@
             }
 
             // Calculations:
-            
-            // 1. Maximum Loss ($) = Portfolio * (Risk Level % / 100)
             const maxLoss = portfolio * (risklevel / 100);
-
-            // 2. Position Size ($) = Max Loss / (Stop Loss % / 100)
             const positionSize = maxLoss / (stoploss / 100);
-
-            // 3. Margin ($) = Position Size / Leverage
-            // This is an approximation for an initial margin in a leveraged trade.
             const margin = positionSize / leverage;
 
             // Update DOM with results
@@ -613,18 +607,15 @@
             const historyLog = document.getElementById('history-log');
             const historyItem = createHistoryElement(data);
             
-            // Add to the top of the list
             historyLog.prepend(historyItem);
 
-            // Save to Local Storage
             let history = JSON.parse(localStorage.getItem('tradeSimpleHistory') || '[]');
-            history.unshift(data); // Add to beginning
+            history.unshift(data); 
             localStorage.setItem('tradeSimpleHistory', JSON.stringify(history));
         }
 
         /**
          * Creates an HTML list item for a history entry.
-         * @param {Object} data - The calculation data.
          */
         function createHistoryElement(data) {
             const li = document.createElement('li');
@@ -654,17 +645,15 @@
                 historyLog.appendChild(createHistoryElement(data));
             });
 
-            // Make sure the history card is hidden on small screens initially
             if (window.innerWidth <= 768) {
                 document.getElementById('history-card').style.display = 'none';
             }
         }
 
-        // --- Modal Logic ---
+        // --- Modal & Download Logic (The requested changes) ---
 
         /**
          * Opens a specified modal.
-         * @param {string} modalId - The ID of the modal to open.
          */
         function openModal(modalId) {
             document.getElementById(modalId).classList.add('active');
@@ -672,7 +661,6 @@
 
         /**
          * Closes a specified modal.
-         * @param {string} modalId - The ID of the modal to close.
          */
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
@@ -684,6 +672,46 @@
         function openDownloadModal() {
             closeModal('connectModal');
             openModal('downloadModal');
+        }
+
+        /**
+         * Handles the PC download button click: Confirmation prompt and file download.
+         */
+        function handlePCDownload(e) {
+            e.preventDefault();
+            
+            closeModal('downloadModal'); // Close the modal before the prompt
+
+            // 1. Confirmation Prompt
+            const isConfirmed = confirm("Are you sure you want to download the Trade Simple desktop app (Offline HTML file)?");
+
+            if (isConfirmed) {
+                // 2. Download Simulation: Downloads the current HTML file
+                alert("Download starting... Please save the 'trade-simple-app.html' file.");
+                
+                const link = document.createElement('a');
+                link.href = 'index.html'; 
+                link.download = 'trade-simple-app.html'; 
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                alert("Download cancelled.");
+            }
+        }
+
+        /**
+         * Sets up the event listener for the PC download link.
+         */
+        function setupDownloadLinks() {
+            const pcDownloadLink = document.getElementById('pc-download-link');
+            
+            if (pcDownloadLink) {
+                pcDownloadLink.addEventListener('click', handlePCDownload);
+            }
+            
+            // Note: Mobile link remains a simple external link to a placeholder URL.
         }
 
         // Close modal when clicking outside the content
