@@ -3,652 +3,697 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trade Simple</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="icon" type="image/png" href="logo.png" /> 
-    
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#5d9a9f"/> 
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="apple-touch-icon" href="/logo.png"> 
-
+    <title>Trade Simple - Risk Calculator</title>
     <style>
-        /*
-        * ----------------------------------------
-        * CSS STYLES (Minimalist Design + Gradient)
-        * ----------------------------------------
-        */
+        /* --- General Styles --- */
         :root {
-            --primary-color: #5d9a9f; /* Soft Teal */
-            --primary-dark: #4a7d80;
-            --secondary-color: #f7f9f9; 
+            --primary-color: #2c938c; /* Teal/Green color from logo/buttons */
+            --secondary-color: #3f51b5; /* A complementary color, optional */
+            --background-color: #f0f8ff; /* Light blue background */
+            --card-background: #ffffff;
             --text-color: #333;
-            --light-text-color: #777;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --input-border: #ccc;
+            --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.1);
+            --shadow-dark: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
         body {
-            font-family: var(--font-family);
-            /* Simple Gradient Background (Pleasing in the eyes) */
-            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Align to the top of the viewport */
             min-height: 100vh;
             margin: 0;
             padding: 20px;
+            color: var(--text-color);
         }
 
-        .calculator-container {
-            /* FIXED: Ginawang transparent ang background at tinanggal ang shadow */
-            background-color: transparent; 
-            border-radius: 16px;
-            box-shadow: none; 
+        /* --- Layout Container --- */
+        .app-container {
+            display: flex;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+            margin-top: 50px; /* Space from the top */
+        }
+
+        /* --- Card Styles (Calculator & History) --- */
+        .card {
+            background-color: var(--card-background);
+            border-radius: 15px;
+            box-shadow: var(--shadow-dark);
             padding: 30px;
             width: 100%;
-            max-width: 400px;
-            text-align: center;
-            transition: all 0.5s ease-in-out; 
-            position: relative;
         }
 
-        /* Header Layout */
-        .header-section {
+        .main-calculator {
+            flex: 2; /* Calculator takes more space */
+        }
+
+        .history-log {
+            flex: 1; /* History takes less space */
+            max-height: 700px; /* Limit history height */
+            overflow-y: auto; /* Make history scrollable */
+        }
+
+        /* --- Header/Logo --- */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 10px;
+            /* Fallback background if logo.png is missing */
+            background-color: var(--primary-color); 
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .logo-text {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        /* --- History Button --- */
+        .history-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        
+        /* --- Form Elements --- */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        /* --- Calculation Results --- */
+        .results {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .result-item {
             display: flex;
             justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .result-label {
+            font-weight: 500;
+        }
+
+        .result-value {
+            font-weight: 700;
+            color: var(--text-color);
+        }
+
+        /* --- Buttons --- */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+            flex: 1;
+        }
+
+        .btn-calculate {
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
             align-items: center;
-            margin-bottom: 25px;
+            justify-content: center;
+        }
+
+        .btn-clear {
+            background-color: #f0f0f0;
+            color: var(--text-color);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-calculate:hover {
+            background-color: #207a73;
+        }
+
+        .btn-clear:hover {
+            background-color: #e0e0e0;
+        }
+
+        .btn-support {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 25px;
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            text-decoration: none;
+        }
+
+        .btn-support:hover {
+            background-color: #e8e8e8;
+        }
+        
+        /* --- History Log Styles --- */
+        .history-card-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary-color);
             border-bottom: 1px solid #eee;
             padding-bottom: 10px;
         }
 
-        .logo {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            margin-right: 15px;
+        .history-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
-        .title {
-            color: var(--primary-color);
-            font-size: 1.4em;
-            font-weight: 600;
-            letter-spacing: 1px;
-            margin: 0;
-            flex-grow: 1;
-            text-align: left;
+        .history-item {
+            border-bottom: 1px solid #f0f0f0;
+            padding: 10px 0;
+            font-size: 14px;
+            line-height: 1.4;
         }
-        
-        /* History Toggle Button */
-        #historyToggle {
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .history-inputs span {
+            display: block;
+            color: #777;
+        }
+
+        .history-results {
+            margin-top: 5px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        #history-log:empty:before {
+            content: "No calculations yet.";
+            color: #999;
+            font-style: italic;
+            display: block;
+            text-align: center;
+            padding: 50px 0;
+        }
+
+        /* --- Modal Styles (Connect & Download) --- */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--card-background);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow-dark);
+            max-width: 400px;
+            width: 90%;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .close-btn {
             background: none;
             border: none;
-            color: var(--light-text-color);
+            font-size: 24px;
             cursor: pointer;
-            font-size: 1.2em;
-            padding: 5px;
-            transition: color 0.3s;
+            line-height: 1;
+            color: #999;
+        }
+        
+        .close-btn:hover {
+            color: var(--text-color);
         }
 
-        #historyToggle:hover {
-            color: var(--primary-color);
-        }
-
-        /* --- Input/Results Styles --- */
-        .input-group { margin-bottom: 25px; text-align: left; }
-        .input-group label { display: block; margin-bottom: 6px; font-size: 0.9em; color: var(--text-color); font-weight: 600; }
-        .input-group input { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid #ddd; 
-            border-radius: 6px; 
-            box-sizing: border-box; 
-            font-size: 1.1em; 
-            color: var(--text-color); 
-            text-align: right; 
-            background-color: #ffffff; /* Pinasigurong puti ang loob ng input */
-        }
-        .results-container { border-top: 2px solid #eee; padding-top: 20px; text-align: left; }
-        .result-group { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1em; color: var(--text-color); }
-        .result-group span:first-child { color: var(--light-text-color); font-weight: 500; }
-        .result-value { font-weight: bold; color: var(--primary-color); }
-        .history-list { list-style: none; padding: 0; max-height: 400px; overflow-y: auto; }
-        /* Tiyakin na may puting background ang history items para madaling basahin */
-        .history-item { background-color: #ffffff; border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--primary-color); }
-        .history-date { font-size: 0.75em; color: var(--light-text-color); margin-bottom: 8px; display: block; }
-        .history-summary strong { color: var(--primary-dark); }
-        .view-content.hidden { display: none !important; }
-
-        /* --- Calculation/Clear Button Group --- */
-        .button-group {
+        .modal-link-item, .modal-download-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            background-color: #f8f8f8;
+            border: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
             display: flex;
-            gap: 10px; /* Space between buttons */
-            margin-bottom: 30px;
-        }
-        
-        #calculateBtn, #clearBtn {
-            flex-grow: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        #calculateBtn {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        #calculateBtn:hover {
-            background-color: var(--primary-dark);
-        }
-        
-        #clearBtn {
-            background-color: #e0e0e0; /* Light gray */
+            align-items: center;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
             color: var(--text-color);
         }
 
-        #clearBtn:hover {
-            background-color: #ccc;
-        }
-
-
-        /* --- Support Section (Only the button remains) --- */
-        .support {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #f0f0f0;
-            text-align: center;
-        }
-        #supportToggle {
-            background-color: var(--secondary-color);
-            border: 1px solid #ddd;
-            color: var(--text-color);
-            font-size: 1em;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 10px 20px;
-            border-radius: 6px;
-            transition: background-color 0.3s, border-color 0.3s;
-        }
-        #supportToggle:hover {
-            background-color: #e0e0e0;
+        .modal-link-item:hover, .modal-download-item:hover {
+            background-color: #eef;
             border-color: var(--primary-color);
         }
 
-        /* --- Modal (Pop-up) Styling (Retained) --- */
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
-        .modal-content { background-color: #fefefe; margin: 15% auto; padding: 30px; border-radius: 12px; width: 80%; max-width: 350px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from {opacity: 0; transform: scale(0.9);} to {opacity: 1; transform: scale(1);} }
-        .close-button { color: #aaa; float: right; font-size: 28px; font-weight: bold; }
-        .close-button:hover, .close-button:focus { color: #333; text-decoration: none; cursor: pointer; }
-        .modal-content h3 { color: var(--primary-color); border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0; text-align: center; }
-        .modal .support-buttons { display: flex; flex-direction: column; gap: 10px; padding: 15px 0; }
-        .modal .support-btn { color: var(--text-color); background-color: var(--secondary-color); padding: 12px; border-radius: 8px; justify-content: flex-start; transition: background-color 0.2s; text-decoration: none; }
-        .modal .support-btn:hover { background-color: #e0e0e0; color: var(--primary-dark); }
-        .modal .support-btn i { font-size: 1.4em; width: 30px; color: var(--primary-color); }
+        .modal-icon {
+            margin-right: 15px;
+            font-size: 20px;
+        }
+        
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+                margin-top: 10px;
+            }
+
+            .history-log {
+                max-height: 400px;
+                overflow-y: scroll;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .button-group {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* --- Custom Logo Styling: If logo.png is used, the background/text is overridden --- */
+        .logo img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: block;
+        }
     </style>
 </head>
 <body>
 
-    <div class="calculator-container">
+    <div class="app-container">
         
-        <div class="header-section">
-            <img src="logo.png" alt="Custom Logo" class="logo">
-            <h2 class="title" id="mainTitle">Trade Simple</h2>
+        <div class="card main-calculator">
             
-            <button id="historyToggle">
-                <i class="fas fa-clock" title="View History"></i>
+            <div class="header">
+                <div class="logo-container">
+                    <div class="logo" id="logo-placeholder">
+                        TS 
+                        <img src="logo.png" alt="Trade Simple Logo" onerror="this.parentElement.innerHTML = 'TS'; this.parentElement.style.backgroundColor = '#2c938c';" style="display:none;">
+                    </div>
+                    <span class="logo-text">Trade Simple</span>
+                </div>
+                <button class="history-btn" onclick="toggleHistory()">&#9776;</button> </div>
+
+            <form id="risk-calculator">
+                <div class="form-group">
+                    <label for="portfolio">Total Portfolio Amount ($)</label>
+                    <input type="number" id="portfolio" required placeholder="e.g., 10000" min="0">
+                </div>
+
+                <div class="form-group">
+                    <label for="stoploss">Stop Loss %</label>
+                    <input type="number" id="stoploss" required placeholder="e.g., 5" min="0" max="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="risklevel">Risk Level %</label>
+                    <input type="number" id="risklevel" required placeholder="e.g., 1" min="0" max="100">
+                </div>
+
+                <div class="form-group">
+                    <label for="leverage">Leverage (x)</label>
+                    <input type="number" id="leverage" required placeholder="e.g., 10" min="1">
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="btn btn-calculate">
+                        <span class="modal-icon">&#10003;</span> Calculate
+                    </button>
+                    <button type="button" class="btn btn-clear" onclick="clearForm()">
+                        &#8635; Clear
+                    </button>
+                </div>
+            </form>
+
+            <div class="results">
+                <div class="result-item">
+                    <span class="result-label">~Margin ($)</span>
+                    <span class="result-value" id="margin-output">$0.00</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Maximum Loss ($)</span>
+                    <span class="result-value" id="loss-output">$0.00</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Position Size ($)</span>
+                    <span class="result-value" id="position-output">$0.00</span>
+                </div>
+            </div>
+
+            <button class="btn-support" onclick="openModal('connectModal')">
+                &#9733; Support my work
             </button>
         </div>
-
-        <div id="calculatorView" class="view-content">
-            <div class="input-group">
-                <label for="portfolioAmount">Total Portfolio Amount</label>
-                <input type="number" id="portfolioAmount" step="0.01" min="0">
+        
+        <div class="card history-log" id="history-card">
+            <div class="history-card-header">
+                &#128196; Calculation History
             </div>
-
-            <div class="input-group">
-                <label for="stopLossPercent">Stop Loss %</label>
-                <input type="number" id="stopLossPercent" step="0.01" min="0">
-            </div>
-
-            <div class="input-group">
-                <label for="riskLevelPercent">Risk Level %</label>
-                <input type="number" id="riskLevelPercent" step="0.01" min="0">
-            </div>
-
-            <div class="input-group">
-                <label for="leverage">Leverage x</label>
-                <input type="number" id="leverage" step="1" min="1">
-            </div>
-
-            <div class="button-group">
-                <button id="calculateBtn">
-                    Calculate
-                    <span class="icon">🔗</span>
-                </button>
-                <button id="clearBtn">
-                    Clear <span class="icon"><i class="fas fa-redo"></i></span>
-                </button>
-            </div>
-
-            <div class="results-container">
-                <div class="result-group">
-                    <span>~Margin</span>
-                    <span id="marginResult" class="result-value">$0.00</span>
-                </div>
-                <div class="result-group">
-                    <span>Maximum Loss</span>
-                    <span id="maxLossResult" class="result-value">$0.00</span>
-                </div>
-                <div class="result-group">
-                    <span>Position Size $</span>
-                    <span id="positionSizeResult" class="result-value">$0.00</span>
-                </div>
-            </div>
-        </div>
-
-        <div id="historyView" class="view-content hidden">
-            <div class="history-container">
-                <h3>Calculation History</h3>
-                <ul class="history-list" id="historyList">
-                    <li class="history-item">
-                        <span class="history-date">No calculations recorded yet.</span>
-                    </li>
+            <ul class="history-list" id="history-log">
                 </ul>
-            </div>
-             <button id="clearHistoryBtn" class="support-btn" style="color: #DB4437; border: 1px solid #eee; padding: 8px 15px; display: none; margin-top: 10px;">
-                <i class="fas fa-trash"></i> Clear History
-            </button>
         </div>
+    </div>
 
-        <div class="support">
-            <button id="supportToggle">
-                Support my work <i class="fas fa-share-alt"></i>
+    <div id="connectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                Connect with me
+                <button class="close-btn" onclick="closeModal('connectModal')">&times;</button>
+            </div>
+            <a href="#" class="modal-link-item">
+                <span class="modal-icon">📸</span> Instagram
+            </a>
+            <a href="#" class="modal-link-item">
+                <span class="modal-icon">📘</span> Facebook
+            </a>
+            <a href="#" class="modal-link-item">
+                <span class="modal-icon">👥</span> Community Page
+            </a>
+            <a href="#" class="modal-link-item">
+                <span class="modal-icon">🎶</span> Tiktok Page
+            </a>
+            <a href="#" class="modal-link-item">
+                <span class="modal-icon">🪶</span> X Page
+            </a>
+            <button class="btn-support" style="margin-top: 20px;" onclick="openDownloadModal()">
+                &#128229; Download App
             </button>
         </div>
     </div>
-    
-    <div id="socialModal" class="modal">
+
+    <div id="downloadModal" class="modal">
         <div class="modal-content">
-            <span class="close-button" id="closeModal">&times;</span>
-            <h3>Connect with me</h3>
-            <div class="support-buttons">
-                <a href="https://www.instagram.com/itsmilester?igsh=NXl2cTA5d2VkZGNv" target="_blank" class="support-btn">
-                    <i class="fab fa-instagram"></i> Instagram
-                </a>
-                <a href="https://www.facebook.com/share/1BzcBDoXgF/" target="_blank" class="support-btn">
-                    <i class="fab fa-facebook-f"></i> Facebook
-                </a>
-                <a href="https://www.facebook.com/profile.php?id=61584117402935" target="_blank" class="support-btn">
-                    <i class="fab fa-facebook-square"></i> Community Page
-                </a>
-                <a href="https://www.tiktok.com/@tradesimplee?lang=en-GB&is_from_webapp=1&sender_device=mobile&sender_web_id=7547934700514690576" target="_blank" class="support-btn">
-                    <i class="fab fa-tiktok"></i> Tiktok Page
-                </a>
-                <a href="https://x.com/Tr4deSimple" target="_blank" class="support-btn">
-                    <i class="fab fa-x-twitter"></i> X Page
-                </a>
+            <div class="modal-header">
+                Download the App
+                <button class="close-btn" onclick="closeModal('downloadModal')">&times;</button>
             </div>
+            <p>Get the **Trade Simple** app with the custom logo on your devices!</p>
+            <a href="#" class="modal-download-item">
+                <span class="modal-icon">💻</span> Download for PC (Windows/Mac)
+            </a>
+            <a href="#" class="modal-download-item">
+                <span class="modal-icon">📱</span> Download for Mobile (iOS/Android)
+            </a>
         </div>
     </div>
 
     <script>
-        /*
-        * ----------------------------------------
-        * PWA SERVICE WORKER REGISTRATION (START)
-        * ----------------------------------------
-        */
-        // Register the Service Worker for offline capability
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                // Path is corrected to root path
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
-                    }, err => {
-                        console.log('ServiceWorker registration failed: ', err);
-                    });
-            });
-        }
-        /*
-        * ----------------------------------------
-        * PWA SERVICE WORKER REGISTRATION (END)
-        * ----------------------------------------
-        */
-        
-        /*
-        * ----------------------------------------------------
-        * PWA CUSTOM INSTALL PROMPT LOGIC (FIXED: 1-HOUR RE-PROMPT)
-        * ----------------------------------------------------
-        */
-        let deferredPrompt;
-        const installPromptShownKey = 'installPromptShown';
-
-        // Helper function to check if the app is already installed (Standalone Mode)
-        function isAppInstalled() {
-             // Check standard PWA installed state
-            const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
-                          window.navigator.standalone === true; // For old iOS
-            return isPWA;
-        }
-
-        // 1. Nakinig sa native browser event (para sa PC/Android Chrome)
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            
-            // HINDI IPAPAKITA ang prompt kung installed na O na-decline na noon.
-            if (!isAppInstalled() && localStorage.getItem(installPromptShownKey) !== 'true') {
-                showCustomInstallPrompt();
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            const calculatorForm = document.getElementById('risk-calculator');
+            calculatorForm.addEventListener('submit', handleCalculate);
+            loadInitialHistoryState();
+            checkLogoAvailability();
         });
         
-        // Universal function para sa lahat ng platform (PC/Android/iOS)
-        function showCustomInstallPrompt() {
-            // Check ulit bago ipakita, para double-check
-            if (isAppInstalled() || localStorage.getItem(installPromptShownKey) === 'true') {
-                return; 
-            }
+        // --- Utility Functions ---
 
-            Swal.fire({
-                title: 'Install App?',
-                text: 'For fast, offline access, would you like to add the Trade Simple calculator to your Home Screen/Desktop?',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#5d9a9f',
-                cancelButtonColor: '#DB4437',
-                confirmButtonText: 'Yes, Install it!',
-                cancelButtonText: 'No, thanks.'
-            }).then((result) => {
-                // Markahan na nagpakita na ng prompt sa user
-                localStorage.setItem(installPromptShownKey, 'true');
-
-                if (result.isConfirmed) {
-                    
-                    // --- PC/ANDROID CHROME (Native Prompt) ---
-                    if (deferredPrompt) {
-                        deferredPrompt.prompt();
-                        deferredPrompt = null; 
-                    
-                    // --- iOS SAFARI (Manual Instructions) ---
-                    } else if (navigator.userAgent.match(/iPad|iPhone|iPod/)) {
-                        Swal.fire({
-                            title: 'iOS / iPhone Installation',
-                            html: '1. Click the **Share** <i class="fas fa-share-square"></i> icon at the bottom of the screen.<br>2. Select **"Add to Home Screen"**.',
-                            icon: 'info',
-                            confirmButtonColor: '#5d9a9f'
-                        });
-                    }
-                    
-                } else {
-                     // Kung nag-decline, maghintay ng 1 oras bago ipakita ulit
-                     localStorage.setItem('lastDeclined', new Date().getTime());
-                     // Clear the 'installPromptShownKey' so the check in window.onload can re-trigger in an hour
-                     localStorage.removeItem(installPromptShownKey);
-                }
-            });
-        }
-
-        // Pilitin ang pag-check sa prompt pagkatapos ng maikling delay, kung hindi pa installed
-        window.onload = function() {
-            if (isAppInstalled()) {
-                console.log('App is already installed. Skipping install prompt.');
-                return;
-            }
-
-            const lastDeclined = localStorage.getItem('lastDeclined');
-            const now = new Date().getTime();
-            const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds (CHANGED FROM 1 DAY)
+        /**
+         * Checks if logo.png exists and updates the placeholder accordingly.
+         * If it exists, it displays the image. If not, it keeps the 'TS' text.
+         */
+        function checkLogoAvailability() {
+            const logoPlaceholder = document.getElementById('logo-placeholder');
+            const img = logoPlaceholder.querySelector('img');
             
-            // Ipakita ang prompt kung higit 1 oras na ang nakalipas mula noong nag-decline OR first time
-            if (!lastDeclined || (now - lastDeclined > oneHour)) {
-                // Ipakita ang prompt pagkatapos ng 2.5 segundo para hindi ma-interrupt ang page load
-                setTimeout(showCustomInstallPrompt, 2500); 
-            }
-        };
-        /*
-        * ----------------------------------------------------
-        * PWA CUSTOM INSTALL PROMPT LOGIC (END)
-        * ----------------------------------------------------
-        */
-
-
-        /*
-        * ----------------------------------------
-        * JAVASCRIPT LOGIC (CALCULATOR & HISTORY)
-        * ----------------------------------------
-        */
-        const calculateBtn = document.getElementById('calculateBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const historyToggle = document.getElementById('historyToggle');
-        const calculatorView = document.getElementById('calculatorView');
-        const historyView = document.getElementById('historyView');
-        const historyList = document.getElementById('historyList');
-        const mainTitle = document.getElementById('mainTitle');
-        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
-        const supportToggle = document.getElementById('supportToggle');
-        const socialModal = document.getElementById('socialModal');
-        const closeModal = document.getElementById('closeModal');
-
-
-        // --- Event Listeners ---
-        calculateBtn.addEventListener('click', handleCalculationClick);
-        clearBtn.addEventListener('click', clearCalculator); 
-        historyToggle.addEventListener('click', toggleView);
-        clearHistoryBtn.addEventListener('click', clearHistory);
-        supportToggle.addEventListener('click', openModal);
-        closeModal.addEventListener('click', closeModalHandler);
-        // Close modal when user clicks outside of it
-        window.addEventListener('click', (event) => {
-            if (event.target == socialModal) {
-                closeModalHandler();
-            }
-        });
-
-        // --- Clear Function ---
-        function clearCalculator() {
-            // Reset Input Fields to empty string
-            document.getElementById('portfolioAmount').value = ''; 
-            document.getElementById('stopLossPercent').value = '';
-            document.getElementById('riskLevelPercent').value = '';
-            document.getElementById('leverage').value = '';
-
-            // Reset Result Fields to $0.00
-            document.getElementById('marginResult').textContent = "$0.00";
-            document.getElementById('maxLossResult').textContent = "$0.00";
-            document.getElementById('positionSizeResult').textContent = "$0.00";
-        }
-
-
-        // --- Modal Functions (Pop-up) ---
-        function openModal() {
-            socialModal.style.display = 'block';
-        }
-
-        function closeModalHandler() {
-            socialModal.style.display = 'none';
-        }
-
-
-        // --- History Management Functions ---
-
-        function loadHistory() {
-            try {
-                const history = localStorage.getItem('cryptoRiskHistory');
-                return history ? JSON.parse(history) : [];
-            } catch (e) {
-                console.error("Error loading history from localStorage:", e);
-                return [];
-            }
-        }
-
-        function saveHistory(record) {
-            const history = loadHistory();
-            history.unshift(record); 
-            if (history.length > 20) {
-                history.pop();
-            }
-            try {
-                localStorage.setItem('cryptoRiskHistory', JSON.stringify(history));
-            } catch (e) {
-                console.error("Error saving history to localStorage:", e);
-            }
-        }
-
-        function renderHistory() {
-            const history = loadHistory();
-            historyList.innerHTML = ''; 
-
-            if (history.length === 0) {
-                historyList.innerHTML = `<li class="history-item"><span class="history-date">No calculations recorded yet.</span></li>`;
-                clearHistoryBtn.style.display = 'none';
-                return;
-            }
-            
-            clearHistoryBtn.style.display = 'block';
-
-            history.forEach(record => {
-                const listItem = document.createElement('li');
-                listItem.className = 'history-item';
-                
-                const date = new Date(record.timestamp);
-                const formattedDate = date.toLocaleDateString(undefined, {
-                    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
-                });
-
-                listItem.innerHTML = `
-                    <span class="history-date">${formattedDate}</span>
-                    <div class="history-summary">
-                        <strong>Input:</strong> Port $${record.portfolioAmount}, SL ${record.stopLossPercent}%, Risk ${record.riskLevelPercent}%, Lev ${record.leverage}x
-                        <br>
-                        <strong>Output:</strong> Max Loss ${record.maxLoss}, Pos Size ${record.positionSize}, Margin ${record.margin}
-                    </div>
-                `;
-                historyList.appendChild(listItem);
-            });
-        }
-        
-        function clearHistory() {
-            // FIXED: Using SweetAlert2 to replace the native confirm() call
-            Swal.fire({
-                title: 'Are you sure?',
-                text: "This will permanently delete all calculation history!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#DB4437', 
-                cancelButtonColor: '#5d9a9f', 
-                confirmButtonText: 'Yes, clear it!'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    localStorage.removeItem('cryptoRiskHistory');
-                    renderHistory();
-                    Swal.fire({
-                        title: 'Cleared!',
-                        text: 'Your calculation history has been deleted.',
-                        icon: 'success',
-                        confirmButtonColor: '#5d9a9f'
-                    });
-                }
-            });
-        }
-
-        // --- View Toggle Function ---
-
-        function toggleView() {
-            const isHistoryActive = historyView.classList.contains('hidden');
-            
-            if (isHistoryActive) {
-                calculatorView.classList.add('hidden');
-                historyView.classList.remove('hidden');
-                historyToggle.innerHTML = '<i class="fas fa-calculator" title="Go back to Calculator"></i>';
-                mainTitle.textContent = 'HISTORY';
-                renderHistory(); 
-            } else {
-                historyView.classList.add('hidden');
-                calculatorView.classList.remove('hidden');
-                historyToggle.innerHTML = '<i class="fas fa-clock" title="View History"></i>';
-                mainTitle.textContent = 'Trade Simple';
-            }
-        }
-
-
-        // --- Calculation and History Logic ---
-
-        function formatCurrency(amount) {
-            return `$${amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
-        }
-        
-        function calculateRisk(portfolioAmount, stopLossPercent, riskLevelPercent, leverage) {
-            
-            // Validation: if any input is 0 or less, results should be 0 
-            if (portfolioAmount <= 0 || stopLossPercent <= 0 || leverage < 1) {
-                document.getElementById('marginResult').textContent = "$0.00";
-                document.getElementById('maxLossResult').textContent = "$0.00";
-                document.getElementById('positionSizeResult').textContent = "$0.00";
-                return { margin: 0, maximumLoss: 0, positionSize: 0 };
-            }
-
-            const riskLevelDecimal = riskLevelPercent / 100;
-            const stopLossDecimal = stopLossPercent / 100;
-
-            const maximumLoss = portfolioAmount * riskLevelDecimal;
-            const positionSize = maximumLoss / stopLossDecimal;
-            const margin = positionSize / leverage;
-            
-            document.getElementById('maxLossResult').textContent = formatCurrency(maximumLoss);
-            document.getElementById('positionSizeResult').textContent = formatCurrency(positionSize);
-            document.getElementById('marginResult').textContent = formatCurrency(margin);
-
-            return { margin, maximumLoss, positionSize };
-        }
-        
-        function handleCalculationClick() {
-            const portfolioAmount = parseFloat(document.getElementById('portfolioAmount').value || 0);
-            const stopLossPercent = parseFloat(document.getElementById('stopLossPercent').value || 0);
-            const riskLevelPercent = parseFloat(document.getElementById('riskLevelPercent').value || 0);
-            const leverage = parseFloat(document.getElementById('leverage').value || 0);
-
-            // SweetAlert2 Validation Check
-            if (portfolioAmount <= 0 || stopLossPercent <= 0 || leverage < 1) {
-                
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Invalid Input',
-                    text: 'Please ensure all fields have valid positive values. Leverage must be at least 1.',
-                    confirmButtonColor: '#5d9a9f' 
-                });
-                
-                calculateRisk(portfolioAmount, stopLossPercent, riskLevelPercent, leverage);
-                return;
-            }
-            
-            const { margin, maximumLoss, positionSize } = calculateRisk(portfolioAmount, stopLossPercent, riskLevelPercent, leverage);
-
-            // Save History (Only when Calculate button is clicked and inputs are valid)
-            const record = {
-                timestamp: new Date().toISOString(),
-                portfolioAmount: portfolioAmount.toFixed(2),
-                stopLossPercent: stopLossPercent.toFixed(2),
-                riskLevelPercent: riskLevelPercent.toFixed(2),
-                leverage: leverage.toFixed(0),
-                margin: formatCurrency(margin),
-                maxLoss: formatCurrency(maximumLoss),
-                positionSize: formatCurrency(positionSize)
+            // Try to load the image
+            const tempImg = new Image();
+            tempImg.onload = () => {
+                // Success: Logo exists, display it
+                logoPlaceholder.innerHTML = ''; // Clear 'TS' text
+                img.style.display = 'block'; // Show the image
+                logoPlaceholder.appendChild(img);
+                logoPlaceholder.style.backgroundColor = 'transparent'; // Remove background
             };
-            saveHistory(record);
+            tempImg.onerror = () => {
+                // Failure: Logo doesn't exist, keep 'TS' text/background
+                logoPlaceholder.style.backgroundColor = 'var(--primary-color)';
+            };
+            tempImg.src = 'logo.png';
         }
 
-        // --- Initialization ---
-        // TINANGGAL ANG AUTOMATIC CALCULATION SA PAGE LOAD
+        /**
+         * Formats a number to a currency string.
+         * @param {number} value 
+         */
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value);
+        }
+
+        /**
+         * Toggles the visibility of the history log on smaller screens.
+         */
+        function toggleHistory() {
+            const historyCard = document.getElementById('history-card');
+            // Toggle the visibility only needed for responsiveness, but this keeps a clean UI
+            if (window.innerWidth <= 768) {
+                historyCard.style.display = historyCard.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        // --- Calculator Logic ---
+
+        /**
+         * Handles the calculation logic when the form is submitted.
+         * @param {Event} e 
+         */
+        function handleCalculate(e) {
+            e.preventDefault();
+
+            const portfolio = parseFloat(document.getElementById('portfolio').value);
+            const stoploss = parseFloat(document.getElementById('stoploss').value);
+            const risklevel = parseFloat(document.getElementById('risklevel').value);
+            const leverage = parseFloat(document.getElementById('leverage').value);
+
+            if (isNaN(portfolio) || isNaN(stoploss) || isNaN(risklevel) || isNaN(leverage) || portfolio <= 0) {
+                alert('Please enter valid, positive numbers for all fields.');
+                return;
+            }
+
+            // Calculations:
+            
+            // 1. Maximum Loss ($) = Portfolio * (Risk Level % / 100)
+            const maxLoss = portfolio * (risklevel / 100);
+
+            // 2. Position Size ($) = Max Loss / (Stop Loss % / 100)
+            const positionSize = maxLoss / (stoploss / 100);
+
+            // 3. Margin ($) = Position Size / Leverage
+            // This is an approximation for an initial margin in a leveraged trade.
+            const margin = positionSize / leverage;
+
+            // Update DOM with results
+            document.getElementById('margin-output').textContent = formatCurrency(margin);
+            document.getElementById('loss-output').textContent = formatCurrency(maxLoss);
+            document.getElementById('position-output').textContent = formatCurrency(positionSize);
+
+            // Add to History
+            addToHistory({ portfolio, stoploss, risklevel, leverage, margin, maxLoss, positionSize });
+        }
+
+        /**
+         * Clears the form inputs and result outputs.
+         */
+        function clearForm() {
+            document.getElementById('risk-calculator').reset();
+            document.getElementById('margin-output').textContent = formatCurrency(0);
+            document.getElementById('loss-output').textContent = formatCurrency(0);
+            document.getElementById('position-output').textContent = formatCurrency(0);
+        }
+
+        // --- History Logic ---
+        
+        /**
+         * Adds a calculation result to the history log and local storage.
+         * @param {Object} data - The calculation data.
+         */
+        function addToHistory(data) {
+            const historyLog = document.getElementById('history-log');
+            const historyItem = createHistoryElement(data);
+            
+            // Add to the top of the list
+            historyLog.prepend(historyItem);
+
+            // Save to Local Storage
+            let history = JSON.parse(localStorage.getItem('tradeSimpleHistory') || '[]');
+            history.unshift(data); // Add to beginning
+            localStorage.setItem('tradeSimpleHistory', JSON.stringify(history));
+        }
+
+        /**
+         * Creates an HTML list item for a history entry.
+         * @param {Object} data - The calculation data.
+         */
+        function createHistoryElement(data) {
+            const li = document.createElement('li');
+            li.className = 'history-item';
+            
+            const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+            li.innerHTML = `
+                <div class="history-inputs">
+                    <span>${timestamp} | P: ${formatCurrency(data.portfolio)} | SL: ${data.stoploss}% | R: ${data.risklevel}% | Lev: ${data.leverage}x</span>
+                </div>
+                <div class="history-results">
+                    Loss: ${formatCurrency(data.maxLoss)} | Pos: ${formatCurrency(data.positionSize)} | Margin: ${formatCurrency(data.margin)}
+                </div>
+            `;
+            return li;
+        }
+
+        /**
+         * Loads history from local storage on page load.
+         */
+        function loadInitialHistoryState() {
+            const historyLog = document.getElementById('history-log');
+            const history = JSON.parse(localStorage.getItem('tradeSimpleHistory') || '[]');
+            
+            history.forEach(data => {
+                historyLog.appendChild(createHistoryElement(data));
+            });
+
+            // Make sure the history card is hidden on small screens initially
+            if (window.innerWidth <= 768) {
+                document.getElementById('history-card').style.display = 'none';
+            }
+        }
+
+        // --- Modal Logic ---
+
+        /**
+         * Opens a specified modal.
+         * @param {string} modalId - The ID of the modal to open.
+         */
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        /**
+         * Closes a specified modal.
+         * @param {string} modalId - The ID of the modal to close.
+         */
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        /**
+         * Opens the download modal and closes the connect modal.
+         */
+        function openDownloadModal() {
+            closeModal('connectModal');
+            openModal('downloadModal');
+        }
+
+        // Close modal when clicking outside the content
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.classList.remove('active');
+                }
+            });
+        });
     </script>
 </body>
 </html>
