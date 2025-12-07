@@ -5,17 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trade Simple - Risk Calculator</title>
     
-    <link rel="manifest" href="/trade-simple-manifest.webmanifest">
-    
+    <link rel="manifest" href="/trade-simple-manifest.webmanifest"> 
     <link rel="shortcut icon" href="logo.png" type="image/png">
     <link rel="apple-touch-icon" href="logo.png">
     <meta name="theme-color" content="#2c938c">
     <style>
         /* --- General Styles --- */
         :root {
-            --primary-color: #2c938c; /* Teal/Green color from logo/buttons */
-            --secondary-color: #3f51b5; /* A complementary color, optional */
-            --background-color: #f0f8ff; /* Light blue background */
+            --primary-color: #2c938c;
+            --secondary-color: #3f51b5; 
+            --background-color: #f0f8ff;
             --card-background: #ffffff;
             --text-color: #333;
             --input-border: #ccc;
@@ -28,7 +27,7 @@
             background-color: var(--background-color);
             display: flex;
             justify-content: center;
-            align-items: flex-start; /* Align to the top of the viewport */
+            align-items: flex-start;
             min-height: 100vh;
             margin: 0;
             padding: 20px;
@@ -41,7 +40,7 @@
             gap: 20px;
             max-width: 1200px;
             width: 100%;
-            margin-top: 50px; /* Space from the top */
+            margin-top: 50px;
         }
 
         /* --- Card Styles (Calculator & History) --- */
@@ -54,13 +53,13 @@
         }
 
         .main-calculator {
-            flex: 2; /* Calculator takes more space */
+            flex: 2;
         }
 
         .history-log {
-            flex: 1; /* History takes less space */
-            max-height: 700px; /* Limit history height */
-            overflow-y: auto; /* Make history scrollable */
+            flex: 1;
+            max-height: 700px;
+            overflow-y: auto;
         }
 
         /* --- Header/Logo --- */
@@ -84,7 +83,6 @@
             border-radius: 50%;
             object-fit: cover;
             margin-right: 10px;
-            /* Fallback background if logo.png is missing */
             background-color: var(--primary-color); 
             color: white;
             display: flex;
@@ -282,7 +280,7 @@
             width: 100%;
             height: 100%;
             background-color: rgba(0, 0, 0, 0.5);
-            display: none; /* Hidden by default */
+            display: none;
             justify-content: center;
             align-items: center;
             z-index: 1000;
@@ -369,7 +367,7 @@
             .history-log {
                 max-height: 400px;
                 overflow-y: scroll;
-                display: none; /* Initially hide history on mobile, show via button */
+                display: none; 
             }
 
             .card {
@@ -522,13 +520,35 @@
                 <span class="modal-icon">💻</span> Download for PC (Windows/Mac)
             </a>
             
-            <a href="https://play.google.com/store/apps/details?id=your.mobile.app" target="_blank" class="modal-download-item" id="mobile-download-link">
+            <a href="#" class="modal-download-item" id="mobile-download-link">
                 <span class="modal-icon">📱</span> Download for Mobile (iOS/Android)
             </a>
         </div>
     </div>
 
+    <div id="installConfirmModal" class="modal">
+        <div class="modal-content" style="text-align: center; max-width: 350px;">
+            <div class="modal-header" style="justify-content: center; font-size: 22px;">
+                <span class="modal-icon" style="margin-right: 10px;">&#10003;</span> Install App?
+            </div>
+            
+            <p style="margin-bottom: 25px;">
+                Would you like to install **Trade Simple Calculator** as a standalone application on your device?
+            </p>
+            
+            <div style="display: flex; gap: 15px;">
+                <button type="button" class="btn btn-clear" onclick="closeModal('installConfirmModal')" style="flex: 1;">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn-calculate" id="confirmInstallBtn" style="flex: 1;">
+                    Install Now
+                </button>
+            </div>
+        </div>
+    </div>
     <script>
+        // Global variable to hold the browser's install event
+        let deferredInstallPrompt = null;
         
         document.addEventListener('DOMContentLoaded', () => {
             const calculatorForm = document.getElementById('risk-calculator');
@@ -536,25 +556,27 @@
             loadInitialHistoryState();
             checkLogoAvailability();
             setupDownloadLinks();
-            setupManifest(); // <-- NEW: Setup the PWA manifest
+            setupManifest(); 
+            
+            // Listen for the browser's PWA install readiness event
+            window.addEventListener('beforeinstallprompt', (e) => {
+                // Prevent the browser's default prompt
+                e.preventDefault();
+                // Store the event for later use (when the user clicks the custom button)
+                deferredInstallPrompt = e;
+                console.log('beforeinstallprompt event fired and deferred.');
+            });
         });
 
-        // --- NEW PWA Manifest Setup ---
-
-        /**
-         * Dynamically creates the manifest file content so the browser can install the app
-         * with the correct name and icon ('logo.png').
-         */
+        // --- PWA Manifest Setup ---
         function setupManifest() {
             try {
                 const manifestScript = document.getElementById('manifest-data');
                 const manifestJson = JSON.parse(manifestScript.textContent);
                 
-                // Create a blob URL for the manifest content
                 const blob = new Blob([JSON.stringify(manifestJson)], { type: 'application/json' });
                 const manifestURL = URL.createObjectURL(blob);
                 
-                // Set the link in the document head
                 const manifestLink = document.querySelector('link[rel="manifest"]');
                 if (manifestLink) {
                     manifestLink.href = manifestURL;
@@ -565,33 +587,23 @@
         }
         
         // --- Utility Functions ---
-
-        /**
-         * Checks if logo.png exists and updates the placeholder accordingly.
-         */
         function checkLogoAvailability() {
             const logoPlaceholder = document.getElementById('logo-placeholder');
             const img = logoPlaceholder.querySelector('img');
             
             const tempImg = new Image();
             tempImg.onload = () => {
-                // Success: Logo exists, display it
                 logoPlaceholder.innerHTML = ''; 
                 img.style.display = 'block'; 
                 logoPlaceholder.appendChild(img);
                 logoPlaceholder.style.backgroundColor = 'transparent'; 
             };
             tempImg.onerror = () => {
-                // Failure: Logo doesn't exist, keep 'TS' text/background
                 logoPlaceholder.style.backgroundColor = 'var(--primary-color)';
             };
             tempImg.src = 'logo.png';
         }
 
-        /**
-         * Formats a number to a currency string.
-         * @param {number} value 
-         */
         function formatCurrency(value) {
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',
@@ -601,9 +613,6 @@
             }).format(value);
         }
 
-        /**
-         * Toggles the visibility of the history log on smaller screens.
-         */
         function toggleHistory() {
             const historyCard = document.getElementById('history-card');
             if (window.innerWidth <= 768) {
@@ -611,15 +620,9 @@
             }
         }
 
-        // --- Calculator Logic (Unchanged) ---
-
-        /**
-         * Handles the calculation logic when the form is submitted.
-         * @param {Event} e 
-         */
+        // --- Calculator, History Logic (Unchanged) ---
         function handleCalculate(e) {
             e.preventDefault();
-
             const portfolio = parseFloat(document.getElementById('portfolio').value);
             const stoploss = parseFloat(document.getElementById('stoploss').value);
             const risklevel = parseFloat(document.getElementById('risklevel').value);
@@ -630,23 +633,16 @@
                 return;
             }
 
-            // Calculations:
             const maxLoss = portfolio * (risklevel / 100);
             const positionSize = maxLoss / (stoploss / 100);
             const margin = positionSize / leverage;
 
-            // Update DOM with results
             document.getElementById('margin-output').textContent = formatCurrency(margin);
             document.getElementById('loss-output').textContent = formatCurrency(maxLoss);
             document.getElementById('position-output').textContent = formatCurrency(positionSize);
-
-            // Add to History
             addToHistory({ portfolio, stoploss, risklevel, leverage, margin, maxLoss, positionSize });
         }
 
-        /**
-         * Clears the form inputs and result outputs.
-         */
         function clearForm() {
             document.getElementById('risk-calculator').reset();
             document.getElementById('margin-output').textContent = formatCurrency(0);
@@ -654,32 +650,19 @@
             document.getElementById('position-output').textContent = formatCurrency(0);
         }
 
-        // --- History Logic (Unchanged) ---
-        
-        /**
-         * Adds a calculation result to the history log and local storage.
-         * @param {Object} data - The calculation data.
-         */
         function addToHistory(data) {
             const historyLog = document.getElementById('history-log');
             const historyItem = createHistoryElement(data);
-            
             historyLog.prepend(historyItem);
-
             let history = JSON.parse(localStorage.getItem('tradeSimpleHistory') || '[]');
             history.unshift(data); 
             localStorage.setItem('tradeSimpleHistory', JSON.stringify(history));
         }
 
-        /**
-         * Creates an HTML list item for a history entry.
-         */
         function createHistoryElement(data) {
             const li = document.createElement('li');
             li.className = 'history-item';
-            
             const timestamp = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-
             li.innerHTML = `
                 <div class="history-inputs">
                     <span>${timestamp} | P: ${formatCurrency(data.portfolio)} | SL: ${data.stoploss}% | R: ${data.risklevel}% | Lev: ${data.leverage}x</span>
@@ -691,9 +674,6 @@
             return li;
         }
 
-        /**
-         * Loads history from local storage on page load.
-         */
         function loadInitialHistoryState() {
             const historyLog = document.getElementById('history-log');
             const history = JSON.parse(localStorage.getItem('tradeSimpleHistory') || '[]');
@@ -707,68 +687,83 @@
             }
         }
 
-        // --- Modal & Download Logic (Including confirmation download) ---
-
-        /**
-         * Opens a specified modal.
-         */
+        // --- Modal Logic ---
         function openModal(modalId) {
             document.getElementById(modalId).classList.add('active');
         }
 
-        /**
-         * Closes a specified modal.
-         */
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
 
-        /**
-         * Opens the download modal and closes the connect modal.
-         */
         function openDownloadModal() {
             closeModal('connectModal');
             openModal('downloadModal');
         }
 
+        // --- PWA Installation Logic ---
+
         /**
-         * Handles the PC download button click: Confirmation prompt and file download.
+         * Opens the custom "Sweet Alert"-style confirmation modal.
          */
-        function handlePCDownload(e) {
+        function handlePCDownloadConfirmation(e) {
             e.preventDefault();
-            
             closeModal('downloadModal');
-
-            // 1. Confirmation Prompt
-            const isConfirmed = confirm("Are you sure you want to download the Trade Simple desktop app (Offline HTML file)?");
-
-            if (isConfirmed) {
-                // 2. Download Simulation: Downloads the current HTML file
-                alert("Download starting... Please save the 'trade-simple-app.html' file to create your offline app file.");
-                
-                const link = document.createElement('a');
-                link.href = 'index.html'; 
-                link.download = 'trade-simple-app.html'; 
-                
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+            
+            // Check if the browser is ready to show the PWA prompt
+            if (deferredInstallPrompt) {
+                // Open the custom confirmation modal
+                openModal('installConfirmModal');
             } else {
-                alert("Download cancelled.");
+                // Fallback instruction if the PWA API is not ready (e.g., if already installed or not running on HTTPS)
+                alert("The automatic install prompt is not available. Please use the 'Install App' icon (monitor with arrow) in your browser's address bar to install the shortcut.");
+            }
+        }
+        
+        /**
+         * Triggers the native browser PWA installation prompt.
+         */
+        async function triggerPWAInstall() {
+            closeModal('installConfirmModal');
+            
+            if (deferredInstallPrompt) {
+                // Show the native browser installation prompt
+                deferredInstallPrompt.prompt();
+                
+                // Wait for the user to respond to the prompt
+                const { outcome } = await deferredInstallPrompt.userChoice;
+                
+                console.log(`User response to install prompt: ${outcome}`);
+                
+                // Clear the deferred prompt variable
+                deferredInstallPrompt = null;
+                
+                if (outcome === 'accepted') {
+                    alert('Installation successful! Look for "Trade Simple Calculator" on your desktop/start menu.');
+                } else {
+                    alert('Installation cancelled.');
+                }
+            } else {
+                 alert("Installation prompt is not ready. Please try refreshing the page.");
             }
         }
 
         /**
-         * Sets up the event listener for the PC download link.
+         * Sets up the event listeners.
          */
         function setupDownloadLinks() {
             const pcDownloadLink = document.getElementById('pc-download-link');
+            const mobileDownloadLink = document.getElementById('mobile-download-link');
             
+            // Both PC and Mobile will use the PWA installation flow
             if (pcDownloadLink) {
-                pcDownloadLink.addEventListener('click', handlePCDownload);
+                pcDownloadLink.addEventListener('click', handlePCDownloadConfirmation);
+            }
+            if (mobileDownloadLink) {
+                mobileDownloadLink.addEventListener('click', handlePCDownloadConfirmation);
             }
         }
-
+        
         // Close modal when clicking outside the content
         document.querySelectorAll('.modal').forEach(modal => {
             modal.addEventListener('click', (e) => {
@@ -777,6 +772,12 @@
                 }
             });
         });
+
+        // Attach event listener to the custom install button in the new modal
+        const confirmBtn = document.getElementById('confirmInstallBtn');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', triggerPWAInstall);
+        }
     </script>
 </body>
 </html>
