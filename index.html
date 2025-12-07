@@ -15,6 +15,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="apple-touch-icon" href="/logo.png"> 
+
     <style>
         /*
         * ----------------------------------------
@@ -27,7 +28,6 @@
             --secondary-color: #f7f9f9; 
             --text-color: #333;
             --light-text-color: #777;
-            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
@@ -44,9 +44,10 @@
         }
 
         .calculator-container {
-            background-color: #ffffff;
+            /* FIXED: Ginawang transparent ang background at tinanggal ang shadow */
+            background-color: transparent; 
             border-radius: 16px;
-            box-shadow: var(--box-shadow);
+            box-shadow: none; 
             padding: 30px;
             width: 100%;
             max-width: 400px;
@@ -97,16 +98,27 @@
             color: var(--primary-color);
         }
 
-        /* --- Input/Results Styles (Retained) --- */
+        /* --- Input/Results Styles --- */
         .input-group { margin-bottom: 25px; text-align: left; }
-        .input-group label { display: block; margin-bottom: 6px; font-size: 0.9em; color: var(--light-text-color); font-weight: 600; }
-        .input-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1.1em; color: var(--text-color); text-align: right; }
+        .input-group label { display: block; margin-bottom: 6px; font-size: 0.9em; color: var(--text-color); font-weight: 600; }
+        .input-group input { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            box-sizing: border-box; 
+            font-size: 1.1em; 
+            color: var(--text-color); 
+            text-align: right; 
+            background-color: #ffffff; /* Pinasigurong puti ang loob ng input */
+        }
         .results-container { border-top: 2px solid #eee; padding-top: 20px; text-align: left; }
         .result-group { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 1.1em; color: var(--text-color); }
         .result-group span:first-child { color: var(--light-text-color); font-weight: 500; }
         .result-value { font-weight: bold; color: var(--primary-color); }
         .history-list { list-style: none; padding: 0; max-height: 400px; overflow-y: auto; }
-        .history-item { background-color: var(--secondary-color); border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--primary-color); }
+        /* Tiyakin na may puting background ang history items para madaling basahin */
+        .history-item { background-color: #ffffff; border-radius: 8px; padding: 15px; margin-bottom: 15px; border-left: 4px solid var(--primary-color); }
         .history-date { font-size: 0.75em; color: var(--light-text-color); margin-bottom: 8px; display: block; }
         .history-summary strong { color: var(--primary-dark); }
         .view-content.hidden { display: none !important; }
@@ -315,26 +327,38 @@
         
         /*
         * ----------------------------------------------------
-        * PWA CUSTOM INSTALL PROMPT LOGIC (FIXED & UNIVERSAL)
+        * PWA CUSTOM INSTALL PROMPT LOGIC (FIXED: 1-HOUR RE-PROMPT)
         * ----------------------------------------------------
         */
         let deferredPrompt;
         const installPromptShownKey = 'installPromptShown';
+
+        // Helper function to check if the app is already installed (Standalone Mode)
+        function isAppInstalled() {
+             // Check standard PWA installed state
+            const isPWA = window.matchMedia('(display-mode: standalone)').matches || 
+                          window.navigator.standalone === true; // For old iOS
+            return isPWA;
+        }
 
         // 1. Nakinig sa native browser event (para sa PC/Android Chrome)
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
             
-            // I-check kung nagpakita na tayo ng prompt sa user
-            if (localStorage.getItem(installPromptShownKey) !== 'true') {
+            // HINDI IPAPAKITA ang prompt kung installed na O na-decline na noon.
+            if (!isAppInstalled() && localStorage.getItem(installPromptShownKey) !== 'true') {
                 showCustomInstallPrompt();
             }
         });
         
         // Universal function para sa lahat ng platform (PC/Android/iOS)
         function showCustomInstallPrompt() {
-            // Gumagana ang SweetAlert2 sa lahat ng device
+            // Check ulit bago ipakita, para double-check
+            if (isAppInstalled() || localStorage.getItem(installPromptShownKey) === 'true') {
+                return; 
+            }
+
             Swal.fire({
                 title: 'Install App?',
                 text: 'For fast, offline access, would you like to add the Trade Simple calculator to your Home Screen/Desktop?',
@@ -359,32 +383,37 @@
                     } else if (navigator.userAgent.match(/iPad|iPhone|iPod/)) {
                         Swal.fire({
                             title: 'iOS / iPhone Installation',
-                            html: '1. Click the Share <i class="fas fa-share-square"></i> icon at the bottom of the screen.<br>2. Select "Add to Home Screen".',
+                            html: '1. Click the **Share** <i class="fas fa-share-square"></i> icon at the bottom of the screen.<br>2. Select **"Add to Home Screen"**.',
                             icon: 'info',
                             confirmButtonColor: '#5d9a9f'
                         });
                     }
                     
                 } else {
-                     // Kung nag-decline, maghintay ng 1 araw bago ipakita ulit
+                     // Kung nag-decline, maghintay ng 1 oras bago ipakita ulit
                      localStorage.setItem('lastDeclined', new Date().getTime());
+                     // Clear the 'installPromptShownKey' so the check in window.onload can re-trigger in an hour
+                     localStorage.removeItem(installPromptShownKey);
                 }
             });
         }
 
-        // Pilitin ang pag-check sa prompt pagkatapos ng maikling delay
+        // Pilitin ang pag-check sa prompt pagkatapos ng maikling delay, kung hindi pa installed
         window.onload = function() {
+            if (isAppInstalled()) {
+                console.log('App is already installed. Skipping install prompt.');
+                return;
+            }
+
             const lastDeclined = localStorage.getItem('lastDeclined');
             const now = new Date().getTime();
-            const oneDay = 24 * 60 * 60 * 1000; // 1 day in milliseconds
+            const oneHour = 60 * 60 * 1000; // 1 hour in milliseconds (CHANGED FROM 1 DAY)
             
-            // Check if the user is using the app after 1 day OR if it's the first time
-            if (!lastDeclined || (now - lastDeclined > oneDay)) {
+            // Ipakita ang prompt kung higit 1 oras na ang nakalipas mula noong nag-decline OR first time
+            if (!lastDeclined || (now - lastDeclined > oneHour)) {
                 // Ipakita ang prompt pagkatapos ng 2.5 segundo para hindi ma-interrupt ang page load
                 setTimeout(showCustomInstallPrompt, 2500); 
             }
-            // I-update ang last visit timestamp
-            localStorage.setItem('lastVisit', now);
         };
         /*
         * ----------------------------------------------------
@@ -509,7 +538,7 @@
         }
         
         function clearHistory() {
-            // FIXED: Using SweetAlert2 instead of native confirm() to fix the "localhost says" pop-up.
+            // FIXED: Using SweetAlert2 to replace the native confirm() call
             Swal.fire({
                 title: 'Are you sure?',
                 text: "This will permanently delete all calculation history!",
